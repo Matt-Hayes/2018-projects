@@ -1,0 +1,533 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+//---------------------------------------------------------//
+//Matthew Hayes c3181550
+//MaxWell Mottee c3274706
+//12-5-18
+//This form is our Primary form for the game Lurgit.
+//Our Assignment tasked us to build and code the dice game 
+//called Lurgit, where the aim to score the most amount of 
+//points by rolling 3 dice and scoring points each round until
+//the end of the game. It can be played by yourself against
+//your friends or against the computer.
+//---------------------------------------------------------//
+namespace Assignment_Player1
+{
+    public partial class Lurgitfrm : Form
+    {
+        public Lurgitfrm()
+        {
+            InitializeComponent();
+        }
+
+        //---------------------------------------------------------//
+        //Global values used across the program for all functions, 
+        //methods and event handlers to use.
+        //---------------------------------------------------------//
+        public static int[] iRoll = new int[3];
+        public static int[] iDieCheat = new int[3];
+        public static int[] iTwoPlayer = new int[2];
+        Random rnd = new Random();
+        int iRoundTurn = 1;
+        int iRoundPoints = 0;
+        int iRollbutton = 1;
+        int iTurnPoints = 0;
+        int iPlayer = 1;
+        int iBPoints; 
+        int iPlayer2Wins = 0;
+        int iPlayer1Wins = 0;
+
+        //---------------------------------------------------------//
+        //HowToPlaybtn connects a secondary form to the game with 
+        //rules on how to play the game.
+        //---------------------------------------------------------//
+        private void HowToPlaybtn_Click(object sender, EventArgs e)
+        {
+            frmHelp formHelp = new frmHelp();
+            formHelp.EvtFrm += new ShowFrm(Form2_evtFrm);
+            formHelp.Show();
+            HowToPlaybtn.Enabled = false;
+        }
+
+        //---------------------------------------------------------//
+        //Form2_evtFrm is a function that is called by the HowtoPlaybtn
+        //to activite the HowToPlaybtn.
+        //---------------------------------------------------------//
+        void Form2_evtFrm()
+        {
+            HowToPlaybtn.Enabled = true;
+        }
+
+        //---------------------------------------------------------//
+        //ChkbxSinglePlayer when selected, starts the game up with a single
+        //Player playing the game.
+        //---------------------------------------------------------//
+        private void ChkbxSinglePlayer_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ChkbxSinglePlayer.Checked && iRoundTurn == 1)
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Single player" + "\r\n");
+                Chkbx2Player.Enabled = false;
+                ChkbxSinglePlayer.Enabled = false;
+                ChkbxComputer.Enabled = false;
+                Rollbtn.Enabled = true;
+                EndTurnbtn.Enabled = true;
+                NewGamebtn.Enabled = true;
+                chkbxDie1.Enabled = true;
+                chkbxDie2.Enabled = true;
+                chkbxDie3.Enabled = true;
+            }
+        }
+        //---------------------------------------------------------//
+        //Chkbx2Player when selected starts the game up with player vs.
+        //player.
+        //---------------------------------------------------------//
+        private void Chkbx2Player_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Chkbx2Player.Checked && iRoundTurn == 1)
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Two players" + "\r\n");
+                Chkbx2Player.Enabled = false;
+                ChkbxSinglePlayer.Enabled = false;
+                ChkbxComputer.Enabled = false;
+                Rollbtn.Enabled = true;
+                EndTurnbtn.Enabled = true;
+                NewGamebtn.Enabled = true;
+                chkbxDie1.Enabled = true;
+                chkbxDie2.Enabled = true;
+                chkbxDie3.Enabled = true;
+            }
+
+        }
+
+        //---------------------------------------------------------//
+        //ChkbxComputer when selected starts the game up with the 
+        //computer as your opponent.
+        //---------------------------------------------------------//
+        private void ChkbxComputer_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ChkbxComputer.Checked && iRoundTurn == 1)
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player vs. Computer" + "\r\n");
+                Chkbx2Player.Enabled = false;
+                ChkbxSinglePlayer.Enabled = false;
+                ChkbxComputer.Enabled = false;
+                Rollbtn.Enabled = true;
+                EndTurnbtn.Enabled = true;
+                NewGamebtn.Enabled = true;
+                chkbxDie1.Enabled = true;
+                chkbxDie2.Enabled = true;
+                chkbxDie3.Enabled = true;
+            }
+
+        }
+
+        //---------------------------------------------------------//
+        //Rollbtn allows players to roll the dice.
+        //---------------------------------------------------------//
+        private void Rollbtn_Click(object sender, EventArgs e)
+        {
+
+            if (iRoundTurn <= 6 && iRollbutton <= 3)
+            {
+                RollingDice();
+            }
+            else
+            {
+                Rollbtn.Enabled = false;
+            }
+        }
+
+        //---------------------------------------------------------//
+        //EndTurnbtn allows the user to end their turn prematurely 
+        //or at the end of their 3 rolls.
+        //Wipes checkbox and clears dice faces,readying for the next
+        //player or turn.
+        //It also connects to the functions PointScore, ColourBtn and
+        //ComputerTurn.
+        //The button becomes disable at the end of the game.
+        //---------------------------------------------------------//
+        private void EndTurnbtn_Click(object sender, EventArgs e)
+        {
+            iRollbutton = 1;
+            if (iRoundTurn <= 6)
+            {
+                chkbxDie1.Checked = false;
+                chkbxDie2.Checked = false;
+                chkbxDie3.Checked = false;
+                PointScore(iRoll);
+                Rollbtn.Enabled = true;
+                Graphics graDie1 = picbxDie1.CreateGraphics();
+                Graphics graDie2 = picbxDie2.CreateGraphics();
+                Graphics graDie3 = picbxDie3.CreateGraphics();
+                graDie1.Clear(Color.White);
+                graDie2.Clear(Color.White);
+                graDie3.Clear(Color.White);
+                iRoll[0] = 0;
+                iRoll[1] = 0;
+                iRoll[2] = 0;
+                ColourBtn(iPlayer);
+                if (ChkbxComputer.Checked && !ChkbxComputer.Enabled && iPlayer == 2)
+                {
+                    ComputerTurn();
+                }
+            }
+            else
+            {
+                EndTurnbtn.Enabled = false;
+            }
+        }
+        //---------------------------------------------------------//
+        //NewGamebtn is the games reset button for when the game.
+        //It resets all values, textboxs, Graphics and checkboxes.
+        //The button is disable before the game starts.
+        //---------------------------------------------------------//
+        private void NewGamebtn_Click(object sender, EventArgs e)
+        {
+            iRoundTurn = 1;
+            iRollbutton = 1;
+            chkbxDie1.Checked = false;
+            chkbxDie2.Checked = false;
+            chkbxDie3.Checked = false;
+            iRoundPoints = 0;
+            iTwoPlayer[0] = 0;
+            iTwoPlayer[1] = 0;
+            txtbxPlayer1Score.Text = Convert.ToString(0);
+            txtbxPlayer2Score.Text = Convert.ToString(0);
+            txtbxTurn.Text = Convert.ToString(1);
+            txtbxRollNumber.Text = Convert.ToString(1);
+            txtbxRoundInfo.Clear();
+            Chkbx2Player.Enabled = true;
+            Chkbx2Player.Checked = false;
+            ChkbxSinglePlayer.Enabled = true;
+            ChkbxSinglePlayer.Checked = false;
+            ChkbxComputer.Enabled = true;
+            ChkbxComputer.Checked = false;
+            NewGamebtn.Enabled = false;
+            EndTurnbtn.Enabled = false;
+            Rollbtn.Enabled = false;
+            chkbxDie1.Enabled = true;
+            chkbxDie2.Enabled = true;
+            chkbxDie3.Enabled = true;
+            iPlayer = 1;
+        }
+
+        //---------------------------------------------------------//
+        //Function RollingDice is the roll dice function that will 
+        //generate 3 dice faces from random number method, while also 
+        //working with ColourBtn and BonusPoints functions and testing
+        //for a Lurgit.
+        //Input: no input
+        //Output: displays dice faces
+        //---------------------------------------------------------//
+        private void RollingDice()
+        {
+            txtbxTurn.Text = Convert.ToString(iRoundTurn);
+            txtbxRollNumber.Text = Convert.ToString(iRollbutton);
+            Graphics graDie1 = picbxDie1.CreateGraphics();
+            Graphics graDie2 = picbxDie2.CreateGraphics();
+            Graphics graDie3 = picbxDie3.CreateGraphics();
+
+            if (!chkbxDie1.Checked)
+            {
+                iRoll[0] = DieFaces(rnd.Next(1, 7), graDie1);
+            }
+            if (!chkbxDie2.Checked)
+            {
+                iRoll[1] = DieFaces(rnd.Next(1, 7), graDie2);
+            }
+            if (!chkbxDie3.Checked)
+            {
+                iRoll[2] = DieFaces(rnd.Next(1, 7), graDie3);
+            }
+
+            ColourBtn(iPlayer);
+            iBPoints = BonusPoints(iRoll);
+            iTurnPoints = iBPoints + iTurnPoints;
+
+            if (iBPoints == 20)
+            {
+                System.Threading.Thread.Sleep(1000);
+                EndTurnbtn.PerformClick();
+            }
+
+            if (iRollbutton == 3)
+            {
+                Rollbtn.Enabled = false;
+            }
+
+            iRollbutton++;
+        }
+
+        //---------------------------------------------------------//
+        //function ComputerTurn is the ai of our game. It rolls the 
+        //dice, and hold the dice equal to the turn and rolls the 
+        //rest until it has completed all its turns, while ending
+        //early if it has all 3 dice held that equal the turn.
+        //Input: No Inputs
+        //OutPut: No Outputs
+        //---------------------------------------------------------//
+        private void ComputerTurn()
+        {
+
+            for (int iPc = 0; iPc < 3; iPc++)
+            {
+                Rollbtn.PerformClick();
+                txtbxRollNumber.Text = Convert.ToString(iRollbutton);
+                if (iRoll[0] == iRoundTurn)
+                {
+                    chkbxDie1.Checked = true;
+                }
+                if (iRoll[1] == iRoundTurn)
+                {
+                    chkbxDie2.Checked = true;
+                }
+                if (iRoll[2] == iRoundTurn)
+                {
+                    chkbxDie3.Checked = true;
+                }
+                System.Threading.Thread.Sleep(2000);
+                if(iPc == 2 || (iRoll[0] == iRoundTurn && iRoll[1] == iRoundTurn && iRoll[2] == iRoundTurn))
+                {
+                    EndTurnbtn.PerformClick();
+                    iPc = 2;
+                }
+            }
+        }
+
+        //---------------------------------------------------------//
+        //Function ColourBtn takes an integer and changes the colour
+        //of the roll button to signify whos turn it is.
+        //Input: Integer iPlayerturn
+        //Output: Change colour of Rollbtn
+        //---------------------------------------------------------//
+        private void ColourBtn(int iPlayerTurn)
+        {
+            if (iPlayer == 1)
+            {
+                Rollbtn.BackColor = Color.Tomato;
+            }
+            else if (iPlayer == 2)
+            {
+                Rollbtn.BackColor = Color.CornflowerBlue;
+            }
+        }
+
+        //---------------------------------------------------------//
+        //Function PointScore take an integer array and calculates 
+        //and displays the scores for each player, plus gives details
+        //to players about who scored what for the turn.
+        //Inputs: Integer array iPoints
+        //Outputs: no return value, formats and displays scores and 
+        //game data
+        //---------------------------------------------------------//
+        private void PointScore(int[] iPoints)
+        {
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (iRoundTurn == iPoints[i])
+                {
+                    iRoundPoints = iPoints[i] + iRoundPoints;
+                }
+            }
+
+            if (iPlayer == 1)
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 1 scored " + iRoundPoints + " points for round " + iRoundTurn + ", plus " + iTurnPoints + " bonus points" + "\r\n");
+                iTwoPlayer[0] = iRoundPoints + iTurnPoints + iTwoPlayer[0];
+                txtbxPlayer1Score.Text = Convert.ToString(iTwoPlayer[0]);
+
+                if (Chkbx2Player.Checked && !Chkbx2Player.Enabled || (!ChkbxComputer.Enabled && ChkbxComputer.Checked))
+                {
+                    iPlayer = 2;
+                    txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 2's Turn" + "\r\n\r\n");
+                }
+                else
+                {
+                    iRoundTurn++;
+                }
+
+            }
+
+            else if (Chkbx2Player.Checked && !Chkbx2Player.Enabled && iPlayer == 2 || ChkbxComputer.Checked && !ChkbxComputer.Enabled && iPlayer == 2)
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 2 scored " + iRoundPoints + " points for round " + iRoundTurn + ", plus " + iTurnPoints + " bonus points" + "\r\n");
+                iTwoPlayer[1] = iRoundPoints + iTurnPoints + iTwoPlayer[1];
+                txtbxPlayer2Score.Text = Convert.ToString(iTwoPlayer[1]);
+                iPlayer = 1;
+                iRoundTurn++;
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 1's Turn" + "\r\n\r\n");
+                
+            }
+
+            if (iRoundTurn == 7)
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 1 scored a total score of " + iTwoPlayer[0] + "\r\n");
+                if (Chkbx2Player.Checked && !Chkbx2Player.Enabled || ChkbxComputer.Checked && !ChkbxComputer.Enabled)
+                {
+                    txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 2 scored a total score of " + iTwoPlayer[1] + "\r\n");
+                }
+                if(iTwoPlayer[0] > iTwoPlayer[1])
+                {
+                    txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "PLAYER 1 WINS" + "\r\n");
+                    iPlayer1Wins++;
+                }
+                else if (iTwoPlayer[0] < iTwoPlayer[1])
+                {
+                    txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "PLAYER 2 WINS" + "\r\n");
+                    iPlayer2Wins++;
+                }
+                else
+                {
+                    txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "DRAW GAME" + "\r\n");
+                }
+
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 1 has " + iPlayer1Wins + " Wins " + "\r\n");
+                if (Chkbx2Player.Checked && !Chkbx2Player.Enabled || ChkbxComputer.Checked && !ChkbxComputer.Enabled)
+                {
+                    txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player 2 has " + iPlayer2Wins + " Wins " + "\r\n");
+                }
+            }
+            else
+            {
+                txtbxTurn.Text = Convert.ToString(iRoundTurn);
+            }
+            iTurnPoints = 0; 
+            iRoundPoints = 0;
+        }
+
+        //---------------------------------------------------------//
+        //Function BonusPoints takes an integer array and returns a 
+        //single integer.
+        //BonusPoints also rearranges the dice rolled into a sequence
+        //of low to high and test to see if the sequence is true only
+        //for examples 1,2,3 or 2,3,4... etc. while also testing for 
+        //lurgit E.g. Turn 2, dice roll 2,2,2 no held dice.
+        //Inputs: Integer array iDieValue
+        //Outputs: Integer
+        //---------------------------------------------------------//
+        private int BonusPoints(int[] iDieValue)
+        {
+            int[] iDie2Value = new int[3];
+            iDieValue.CopyTo(iDie2Value, 0);
+            int iChange;
+            for (int t = 0; t < 3; t++)
+            {
+                if (iDie2Value[0] > iDie2Value[1])
+                {
+                    iChange = iDie2Value[0];
+                    iDie2Value[0] = iDie2Value[1];
+                    iDie2Value[1] = iChange;
+                }
+                if (iDie2Value[1] > iDie2Value[2])
+                {
+                    iChange = iDie2Value[1];
+                    iDie2Value[1] = iDie2Value[2];
+                    iDie2Value[2] = iChange;
+                }
+            }
+            if ((chkbxDie1.Checked && chkbxDie2.Checked && chkbxDie3.Checked) && (iDieValue[0] == iDieCheat[0] && iDieValue[1] == iDieCheat[1] && iDieValue[2] == iDieCheat[2]))
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "CHEATING - Can't hold previous sequence" + "\r\n");
+                iDieValue.CopyTo(iDieCheat, 0);
+                return (0);
+            }
+            if ((iDie2Value[0] + 1 == iDie2Value[1]) && (iDie2Value[1] + 1 == iDie2Value[2]))
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player " + iPlayer + " scored 10 points for a sequence bonus!" + "\r\n");
+                iDieValue.CopyTo(iDieCheat, 0);
+                return (10);
+            }
+            if (!chkbxDie1.Checked && !chkbxDie2.Checked && !chkbxDie3.Checked && (iRoundTurn == iRoll[0] && iRoundTurn == iRoll[1] && iRoundTurn == iRoll[2]))
+            {
+                txtbxRoundInfo.Text = txtbxRoundInfo.Text.Insert(0, "Player  " + iPlayer + " scored 20 points for a Lurgit bonus!" + "\r\n");
+                return (20);
+            }
+            return (0);
+        }
+
+        //---------------------------------------------------------//
+        //Function DieFaces takes an integer and a Graphics method 
+        //and returns a integerand graphic image of the dice face  
+        //that represents the random number rolled.
+        //Inputs: integer roll, Graphic graDie
+        //Outputs: Integer and creates a graphic drawing
+        //---------------------------------------------------------//
+        private int DieFaces(int roll, Graphics graDie)
+        {
+            if (roll == 1)
+            {
+                graDie.Clear(Color.White);
+                Pen penBlack = new Pen(Color.Black);
+                graDie.DrawRectangle(penBlack, 53, 141, 100, 100);
+                graDie.FillEllipse(Brushes.Black, 40, 40, 18, 18);  //centre dot
+                return (1);
+            }
+            else if (roll == 2)
+            {
+                graDie.Clear(Color.White);
+                Pen penBlack = new Pen(Color.Black);
+                graDie.DrawRectangle(penBlack, 53, 141, 100, 100);
+                graDie.FillEllipse(Brushes.Black, 11, 40, 18, 18);  //middle left
+                graDie.FillEllipse(Brushes.Black, 69, 40, 18, 18);  //middle right
+                return (2);
+            }
+            else if (roll == 3)
+            {
+                graDie.Clear(Color.White);
+                Pen penBlack = new Pen(Color.Black);
+                graDie.DrawRectangle(penBlack, 53, 141, 100, 100);
+                graDie.FillEllipse(Brushes.Black, 40, 40, 18, 18);  //centre
+                graDie.FillEllipse(Brushes.Black, 11, 69, 18, 18);  //bot left
+                graDie.FillEllipse(Brushes.Black, 69, 11, 18, 18);  //top right
+                return (3);
+            }
+            else if (roll == 4)
+            {
+
+                graDie.Clear(Color.White);
+                Pen penBlack = new Pen(Color.Black);
+                graDie.DrawRectangle(penBlack, 53, 141, 100, 100);
+                graDie.FillEllipse(Brushes.Black, 11, 69, 18, 18);  //bot left
+                graDie.FillEllipse(Brushes.Black, 69, 11, 18, 18);  //top right
+                graDie.FillEllipse(Brushes.Black, 69, 69, 18, 18);  //bot right
+                graDie.FillEllipse(Brushes.Black, 11, 11, 18, 18);  //top left
+                return (4);
+            }
+            else if (roll == 5)
+            {
+                graDie.Clear(Color.White);
+                Pen penBlack = new Pen(Color.Black);
+                graDie.DrawRectangle(penBlack, 53, 141, 100, 100);
+                graDie.FillEllipse(Brushes.Black, 40, 40, 18, 18);  //centre 
+                graDie.FillEllipse(Brushes.Black, 11, 69, 18, 18);  //bot left
+                graDie.FillEllipse(Brushes.Black, 69, 11, 18, 18);  //top right
+                graDie.FillEllipse(Brushes.Black, 69, 69, 18, 18);  //bot right
+                graDie.FillEllipse(Brushes.Black, 11, 11, 18, 18);  //top left
+                return (5);
+            }
+            else
+            {
+                graDie.Clear(Color.White);
+                Pen penBlack = new Pen(Color.Black);
+                graDie.DrawRectangle(penBlack, 53, 141, 100, 100);
+                graDie.FillEllipse(Brushes.Black, 11, 40, 18, 18);  //centre left
+                graDie.FillEllipse(Brushes.Black, 69, 40, 18, 18);  //centre right
+                graDie.FillEllipse(Brushes.Black, 69, 69, 18, 18);  //bot right
+                graDie.FillEllipse(Brushes.Black, 11, 11, 18, 18);  //top left
+                graDie.FillEllipse(Brushes.Black, 11, 69, 18, 18);  //bot lft 
+                graDie.FillEllipse(Brushes.Black, 69, 11, 18, 18);  //top right
+                return (6);
+            }
+        }
+    }
+}
