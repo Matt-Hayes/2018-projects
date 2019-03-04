@@ -1,0 +1,194 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using Xamarin.Forms;
+using Xamarin.Forms.Platform.Android;
+using Android.App;
+using Android.Support.V4.Content;
+using Android.Content;
+using Android;
+using Android.Content.PM;
+using Android.Support.V4.App;
+using Xamarin.Forms.Internals;
+
+namespace SNAP_QUEST
+{
+
+    public partial class Multiplayer : ContentPage
+    {
+        Random random = new Random();
+        public Multiplayer()
+        {
+
+            InitializeComponent();
+
+            //==========================================================
+            //Reference A1: externally sourced code
+            //Purpose: Setup grid Layout for main interface of SnapQuest
+            //Date: 19 October 2018
+            //Source: Microsoft Xamarin.Forms Grid
+            //Author: Microsoft
+            //URL: https://docs.microsoft.com/en-us/xamarin/xamarin-forms/user-interface/layouts/grid
+            //Adaption required: took the grid definitions from the website to design the layout we required for our interface
+            //==========================================================
+
+            gridLayout.RowDefinitions = new RowDefinitionCollection();
+            gridLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(75, GridUnitType.Star) });
+            gridLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(25, GridUnitType.Star) });
+
+
+            //For loop for populating form with ten rows filled with a label, a camera, and an image
+            for (int MyCount = 0; MyCount < 20; MyCount++)
+            {
+                gridLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(100) });
+                gridLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(200) });
+
+                string name = Randomword();
+                BoxView boxview = new BoxView
+                {
+                    BackgroundColor = Color.LightGray,
+                };
+                var Word = new Label
+                {
+                    Text = name,
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    VerticalTextAlignment = TextAlignment.Center,
+                    TextColor = Color.Black,
+                    FontSize = 28,
+                };
+                var CameraButton = new Button
+                {
+                    Image = "cutmypic.png",
+                    BackgroundColor = Color.Transparent,
+                };
+
+                gridLayout.Children.Add(boxview, 0, 2, MyCount, MyCount + 1);
+                gridLayout.Children.Add(Word, 0, MyCount);
+                gridLayout.Children.Add(CameraButton, 1, MyCount);
+                CameraButton.Clicked += CameraButton_Clicked;
+                MyCount = MyCount + 1;
+            }
+
+            //========================================================
+            // End reference A1
+            //========================================================
+
+            var DoneButton = new Button { Text = "Done" };
+            gridLayout.Children.Add(DoneButton, 1, 21);
+            DoneButton.Clicked += DoneButton_Clicked;
+        }
+
+        //============================================================
+        //Reference A2: externally sourced code
+        //Purpose: Creating a camera button that allows the user to take a photo and temporarily 
+        //save a photo to the application but not to the phones storage.
+        //Date: 18 October 2018
+        //Source: Xamarin Help Community Site
+        //Author: Adam Pedley
+        //URL : https://xamarinhelp.com/use-camera-take-photo-xamarin-forms/
+        //Adaption required: added a check statement in determining if there is a camera nad if it works
+        //============================================================
+
+        private async void CameraButton_Clicked(object sender, EventArgs e)
+        {
+            var photo = await Plugin.Media.CrossMedia.Current.TakePhotoAsync(new Plugin.Media.Abstractions.StoreCameraMediaOptions()
+            {
+                CompressionQuality = 10,
+            });
+
+            if (!Plugin.Media.CrossMedia.Current.IsCameraAvailable || !Plugin.Media.CrossMedia.Current.IsTakePhotoSupported)
+            {
+                await DisplayAlert("No Camera", ":( No camera avaialble.", "OK");
+                return;
+            }
+            if (photo != null)
+            {
+                //============================================================
+                //Reference A2.1: externally sourced code
+                //Purpose: To determine what button has been pressed in which row or column
+                //Date: 19 October 2018
+                //Source: Stackoverflow
+                //Author: mm8
+
+                //URL: https://stackoverflow.com/questions/42190441/xamarin-grid-how-to-know-which-button-is-pressed
+                //Adaption required: Used to determine which camera button in what row had been pressed to determine which position to save the photo to in the interface
+                //============================================================
+
+                Button CameraButton = (Button)sender;
+                int row = Grid.GetRow(CameraButton);
+
+                //==========================================================
+                //End Reference A2.1
+                //==========================================================
+                Image PhotoImage = new Image();
+                PhotoImage.Source = ImageSource.FromStream(() => { return photo.GetStream(); });
+                gridLayout.Children.Add(PhotoImage, 0, row + 1);
+                Grid.SetColumnSpan(PhotoImage, 2);
+            }
+        }
+
+        //==========================================================
+        //End Reference A2
+        //==========================================================
+
+        private string Randomword()
+        {
+
+            string[] word =
+                {
+                    "Cat",
+                    "Video Game",
+                    "Mirror",
+                    "Sand Paper",
+                    "Screw",
+                    "Table",
+                    "Hanger",
+                    "House",
+                    "Stop Sign",
+                    "Tree",
+                    "Drill",
+                    "Dog",
+                    "Bottle",
+                    "Glasses",
+                    "Paint Brush",
+                    "Car",
+                    "Couch",
+                    "Pool",
+                    "Sand",
+                    "Shell",
+                    "Insect",
+                    "lamp",
+                };
+
+
+            int rnd = random.Next(0, 20);
+            string wordNum = word[rnd];
+
+            return wordNum;
+
+        }
+
+        //====================================================================
+        //Reference A3 : externally sourced code
+        //Purpose: remove the top page of the navigation stack
+        //Date: 26 October 2018
+        //Source: Microsoft NavigationPage.PopAsync Method
+        //Author: Microsoft
+        //URL: https://docs.microsoft.com/en-us/dotnet/api/xamarin.forms.navigationpage.popasync?view=xamarin-forms
+        //Adaption: Use to remove top page. Example a back Button
+        //=====================================================================
+
+        private void DoneButton_Clicked(object sender, EventArgs e)
+        {
+            Navigation.PopAsync();
+        }
+
+        //=====================================================================
+        //End Reference A3
+        //=====================================================================
+    }
+}
