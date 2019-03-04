@@ -1,0 +1,103 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using Xamarin.Forms;
+using Xamarin.Forms.Platform.Android;
+using Android.App;
+
+
+namespace SNAP_QUEST
+{
+    public partial class MainPage : ContentPage
+    {
+        public MainPage()
+        {
+            InitializeComponent();
+            //========================================================================================
+            //Reference A1: externally sourced code
+            //Purpose: Setup grid Layout for main interface of SnapQuest
+            //Date: 19 October 2018
+            //Source: Microsoft Xamarin.Forms Grid
+            //Author: Microsoft
+            //URL: https://docs.microsoft.com/en-us/xamarin/xamarin-forms/user-interface/layouts/grid
+            //Adaption required: took the grid definitions from the website to design the layout we required for our interface
+            //=========================================================================================
+
+            gridImage.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            gridImage.RowDefinitions.Add(new RowDefinition { Height = new GridLength(200, GridUnitType.Star) });
+            gridLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            gridLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(15, GridUnitType.Star) });
+            gridLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70, GridUnitType.Star) });
+            gridLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(15, GridUnitType.Star) });
+
+            //Creates Buttons for form
+            var SingleButton = new Button   
+            {
+                Text = "SinglePlayer",
+                CornerRadius = 5,
+            };
+
+            var MultiButton = new Button
+            {
+                Text = "MultiPlayer",
+                CornerRadius = 5,
+            };
+
+            var OptionsButton = new Button
+            {
+                Text = "Options",
+                CornerRadius = 5,
+            };
+
+            //Creats image for form
+            var PhotoImage = new Image
+            {
+                Source = "round.png",
+                Aspect = Aspect.AspectFit,
+            };
+
+            gridImage.Children.Add(PhotoImage, 0, 1);       //Populates section of gridImage with an image
+            gridLayout.Children.Add(SingleButton, 1, 1);    //Creates a Singlebutton in that grid position
+            gridLayout.Children.Add(MultiButton, 1, 2);     //Creates a Multibutton in that grid position
+            gridLayout.Children.Add(OptionsButton, 1, 3);   //Creates a Optionbutton in that grid position
+
+            //===========================================================================================
+            // End Reference A1
+            //===========================================================================================
+
+            SingleButton.Clicked += NaviButton_Clicked;
+            MultiButton.Clicked += NaviButton2_Clicked;
+            OptionsButton.Clicked += NaviButton3_Clicked;
+        }
+        //==========================================================================
+        //Reference M1: externally source code
+        //Purpose: Pressing the button event handler will send the users to a new page
+        //Date: 26 October 2018
+        //Source: Stack Overflow
+        //Author: Reader Man San
+        //URL: https://stackoverflow.com/questions/24621814/pushasync-is-not-supported-globally-on-android-please-use-a-navigationpage-xa
+        //Adaption: Using the Button event handler to navigate through our app
+        //==========================================================================
+        private async void NaviButton_Clicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new SinglePlayer());
+        }
+
+        private async void NaviButton2_Clicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new Multiplayer());
+        }
+
+        private async void NaviButton3_Clicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new Options());
+        }
+        //=========================================================================
+        //End reference M1
+        //=========================================================================
+    }
+}
